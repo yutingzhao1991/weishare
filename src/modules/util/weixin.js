@@ -1,30 +1,37 @@
+var textResponseTemplate = ['<xml>',
+ '<ToUserName><![CDATA[${toUser}]]></ToUserName>',
+ '<FromUserName><![CDATA[${fromUser}]]></FromUserName>',
+ '<CreateTime>${createTime}</CreateTime>',
+ '<MsgType><![CDATA[text]]></MsgType>',
+ '<Content><![CDATA[${content}]]></Content>',
+ '<FuncFlag>${funcFlag}</FuncFlag>',
+ '</xml>'].join('');
+
 function stringifyXML(name, content) {
     return '<' + name +'>' + content + '</' + name + '>';
 }
 
-function encode(data){
+function encodeResponse(data){
     //将JSON格式的内容转化为符合微信接口的内容
-    var result = '<xml>';
-    for(var i in data) {
-        result += stringifyXML(i, data[i]);
-    }
-    result += '</xml>'
+    var patt = /\$\{([\d\w-_]+)\}/g;
+    var result = textResponseTemplate.replace(patt, function(all, value) {
+        //console.log(arguments);
+        return data[value];
+    });
     return result;
 }
 
-function decode(data){
-    //将微信推送的内容转化为JSON格式
-    var details;
+function decodeRequest(data){
     var result = {};
-    var patt = /<(\w+)>([^<>]+)<\/\w+>/g;
-    while ((details = patt.exec(data)) != null){
-        console.log(details);
-        if(details) {
-            result[details[1]] = details[2];
-        }
+    try{
+        result.toUser = data.match(/<ToUserName><\!\[CDATA\[(\S+)\]\]><\/ToUserName>/)[1];
+        result.fromUser = data.match(/<FromUserName><\!\[CDATA\[(\S+)\]\]><\/FromUserName>/)[1];
+        result.content = data.match(/<Content><\!\[CDATA\[(\S+)\]\]><\/Content>/)[1];
+    } catch (e) {
+        console.log(e);
     }
     return result;
 }
 
-exports.encode = encode;
-exports.decode = decode;
+exports.encodeResponse = encodeResponse;
+exports.decodeRequest = decodeRequest;

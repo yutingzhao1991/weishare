@@ -1,5 +1,6 @@
 var config = require('../../config').config;
 var weixinUtil = require('../util/weixin');
+var contentFactory = require('./content');
 
 function judgeAuthentication(signature, timestamp, nonce, echostr) {
     return true;
@@ -29,8 +30,9 @@ function reply(req, res, next){
     req.on('data', function(chunk){ buf += chunk });
     req.on('end', function(){
         console.log('get reply from weixin:' + buf);
-        data = weixinUtil.decode(buf);
-        var reply = weixinUtil.encode(getReplyContent(data));
+        data = weixinUtil.decodeRequest(buf);
+        var reply = weixinUtil.encodeResponse(getReplyContent(data));
+        res.set('Content-Type', 'text/xml');
         res.send(reply);
         console.log('send reply to custom:' + reply);
     });
@@ -38,13 +40,17 @@ function reply(req, res, next){
 
 function getReplyContent(data) {
     return {
-        'ToUserName': data['FromUserName'],
-        'FromUserName': data['ToUserName'],
-        'Content': '还在开发中哦，耐心等待哦亲',
-        'MsgType': 'text',
-        'FuncFlag': '0',
-        'CreateTime': Date.now()
+        toUser: data.fromUser,
+        fromUser: data.toUser,
+        content: makeReplyMessage(data.content),
+        funcFlag: '0',
+        createTime: parseInt(Date.now() / 1000)
     }
+}
+
+function makeReplyMessage(data) {
+    var content = contentFactory.buildMessage(data);
+    return content;
 }
 
 exports.authenticate = authenticate;
