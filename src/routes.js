@@ -15,5 +15,6 @@ exports = module.exports = function(app) {
     res.writeHead(200, {'Content-Type': 'text/plain'});
     res.end('Hello World\n');
   });
-  app.use('/weishare', weixin.weishare(config.token));
+  app.get('/weishare', weixin.authenticate);
+  app.post('/weishare', weixin.reply);
 };

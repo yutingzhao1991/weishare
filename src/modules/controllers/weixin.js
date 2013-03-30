@@ -1,32 +1,35 @@
-var wechat = require('wechat');
+var config = require('../../config').config;
+var weixinUtil = require('../util/weixin');
 
-function weishare(token) {
-    return wechat(token, function (req, res, next) {
-      // 微信输入信息都在req.weixin上
-      var message = req.weixin;
-      if (message.FromUserName === 'diaosi') {
-        // 回复屌丝(普通回复)
-        res.reply('hehe');
-      } else if (message.FromUserName === 'hehe') {
-        // 回复一段音乐
-        res.reply({
-          title: "来段音乐吧",
-          description: "一无所有",
-          musicUrl: "http://mp3.com/xx.mp3",
-          hdMusicUrl: "http://mp3.com/xx.mp3"
-        });
-      } else {
-        // 回复高富帅(图文回复)
-        res.reply([
-          {
-            title: '你来我家接我吧',
-            description: '这是女神与高富帅之间的对话',
-            picurl: 'http://nodeapi.cloudfoundry.com/qrcode.jpg',
-            url: 'http://nodeapi.cloudfoundry.com/'
-          }
-        ]);
-      }
-    });
+function judgeAuthentication(signature, timestamp, nonce, echostr) {
+    return true;
 }
 
-exports.weishare = weishare;
+//认证
+function authenticate(req, res, next){
+    //console.log(req);
+    signature = req.query.signature;//   微信加密签名
+    timestamp = req.query.timestamp;//   时间戳
+    nonce = req.query.nonce;//    随机数
+    echostr = req.query.echostr; //随机字符串
+    if(judgeAuthentication(signature, timestamp, nonce, echostr)) {
+        //通过微信官方认证来源验证
+        res.send(echostr);
+    } else {
+        res.send('error.untrusted');
+    }
+}
+
+//自动回复消息
+function reply(req, res, next){
+    console.log('get reply from weixin:' + req);
+    var reply = weixinUtil.encode('text', {
+        toUser: 'yutingzhao1991',
+        fromUser: 'web-fe',
+        content: '还在开发中哦，耐心等待哦亲'
+    });
+    res.send(reply);
+}
+
+exports.authenticate = authenticate;
+exports.reply = reply;
