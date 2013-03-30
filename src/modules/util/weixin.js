@@ -2,32 +2,28 @@ function stringifyXML(name, content) {
     return '<' + name +'>' + content + '</' + name + '>';
 }
 
-function encode(type, data){
+function encode(data){
     //将JSON格式的内容转化为符合微信接口的内容
     var result = '<xml>';
-    result += stringifyXML('ToUserName', data.toUser);
-    result += stringifyXML('FromUserName', data.fromUser);
-    result += stringifyXML('CreateTime', Date.now());
-    result += stringifyXML('FuncFlag', '0');
-    switch(type) {
-        case 'text':
-            //回复文本消息
-            result += stringifyXML('MsgType', 'text');
-            result += stringifyXML('Content', data.content);
-            break;
+    for(var i in data) {
+        result += stringifyXML(i, data[i]);
     }
     result += '</xml>'
     return result;
 }
 
-function decode(type, data){
+function decode(data){
     //将微信推送的内容转化为JSON格式
-    switch(type) {
-        case 'text':
-            //文本消息
-            break;
+    var details;
+    var result = {};
+    var patt = /<(\w+)>([^<>]+)<\/\w+>/g;
+    while ((details = patt.exec(data)) != null){
+        console.log(details);
+        if(details) {
+            result[details[1]] = details[2];
+        }
     }
-    return {};
+    return result;
 }
 
 exports.encode = encode;

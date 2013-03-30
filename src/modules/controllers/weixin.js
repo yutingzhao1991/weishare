@@ -22,13 +22,29 @@ function authenticate(req, res, next){
 
 //自动回复消息
 function reply(req, res, next){
-    console.log('get reply from weixin:' + req);
-    var reply = weixinUtil.encode('text', {
-        toUser: 'yutingzhao1991',
-        fromUser: 'web-fe',
-        content: '还在开发中哦，耐心等待哦亲'
+    // parse
+    var buf = '';
+    var data = null;
+    req.setEncoding('utf8');
+    req.on('data', function(chunk){ buf += chunk });
+    req.on('end', function(){
+        console.log('get reply from weixin:' + buf);
+        data = weixinUtil.decode(buf);
+        var reply = weixinUtil.encode(getReplyContent(data));
+        res.send(reply);
+        console.log('send reply to custom:' + reply);
     });
-    res.send(reply);
+}
+
+function getReplyContent(data) {
+    return {
+        'ToUserName': data['FromUserName'],
+        'FromUserName': data['ToUserName'],
+        'Content': '还在开发中哦，耐心等待哦亲',
+        'MsgType': 'text',
+        'FuncFlag': '0',
+        'CreateTime': Date.now()
+    }
 }
 
 exports.authenticate = authenticate;
