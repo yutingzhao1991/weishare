@@ -1,6 +1,6 @@
 var config = require('../../config').config;
 var weixinUtil = require('../util/weixin');
-var contentFactory = require('./content');
+var contentFactory = require('../services/content/content');
 
 function judgeAuthentication(signature, timestamp, nonce, echostr) {
     return true;
